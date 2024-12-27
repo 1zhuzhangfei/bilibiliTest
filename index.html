@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bilibili首页</title>
+    <script src="lib/tailwind3.4.16.js"></script>
+</head>
+<style>
+    .navigation::-webkit-scrollbar {
+        display: none;
+    }
+
+    .photo-back {
+        background: linear-gradient(to top,
+                rgba(0, 0, 0, 0.8),
+                /* 黑色，不透明度为0.8（完全可见） */
+                rgba(0, 0, 0, 0)
+                /* 黑色，不透明度为0（完全透明） */
+            );
+
+    }
+
+    #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        /* 半透明灰色 */
+        z-index: 999;
+        /* 确保覆盖层在最上层 */
+        display: none;
+        /* 初始状态下隐藏 */
+    }
+
+    /* 底部滑动线 */
+    .line {
+        position: absolute;
+        bottom: -3px;
+        height: 2px;
+        width: 0;
+        background-color: #EC89A8;
+        transition: all 0.3s ease;
+    }
+
+    .bottom-banner {
+        height: 50px;
+        width: 70%;
+        position: fixed;
+        bottom: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        background-color: #ed709a;
+        color: white;
+        border-radius: 35px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        animation: slide-up 500ms ease-out forwards;
+        justify-content: center;
+    }
+
+    .banner-icon {
+        height: 20px;
+        object-fit: cover;
+        margin-right: 20px;
+        margin-left: 20px;
+        filter: brightness(0) invert(1);
+    }
+
+    .banner-text {
+        line-height: 50px;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    @keyframes slide-up {
+        from {
+            bottom: -100px;
+            /* 动画初始位置 */
+        }
+
+        to {
+            bottom: 60px;
+            /* 动画结束位置 */
+        }
+    }
+</style>
+
+<body>
+    <div class="h-full w-screen">
+        <!-- //头部页签 -->
+        <div class="flex h-12">
+            <img class="w-24 h-10 pl-5 pt-2" src="img/logo-bilibili-pink.png@132w_60h.png">
+            <img class="absolute w-7 h-7 top-3 left-1/2" src="img/ph--magnifying-glass.png">
+            <button class="w-7 h-7 rounded-xl absolute top-3 right-1/4 bg-gray-300 text-xs text-pink-400">登录</button>
+            <button class="w-20 h-7 text-sm bg-pink-400 absolute top-3 right-2 rounded-md text-white">下载 App</button>
+        </div>
+
+        <!-- //导航页 -->
+        <div class="navigation border-b mt-3 flex h-10 whitespace-nowrap flex-nowrap overflow-scroll">
+            <div class="open-nav absolute w-7 h-7 grid place-items-center bg-white right-0">
+                <img class="open-nav-img w-5 h-5 animation:rotate transition: transform 0.5s ease-in-out"
+                    src="img/ep--arrow-down.png">
+            </div>
+            <div class="line"></div>
+        </div>
+
+        <!-- //视频展示页 -->
+        <div class="flex flex-wrap video-shows">
+
+        </div>
+    </div>
+    <div id="overlay"></div>
+    <div class="bottom-banner">
+        <img src="img/logo-bilibili-pink.png@132w_60h.png" alt="App Icon" class="banner-icon">
+        <span class="banner-text">打开App，看你感兴趣的视频</span>
+    </div>
+
+</body>
+<script src="data.js"></script>
+<script>
+    console.log(res.nav);
+    var navigation = document.querySelector(".navigation");
+
+
+    //动态创建导航栏标签内容
+    function createNavigation(value) {
+        var navLable = document.createElement("div");
+        navLable.innerText = value;
+        navLable.className = "pl-3 pr-5 text-gray-500 nav-item";
+        return navLable;
+    }
+
+    for (var i = 0; i < res.nav.length; i++) {
+        navigation.appendChild(createNavigation(res.nav[i]));
+    }
+
+    //导航栏点击展开事件
+    var openNavImg = document.querySelector(".open-nav-img");
+    var isOpen = false;
+    openNavImg.addEventListener("click", function () {
+        if (isOpen) {
+            navigation.className = "navigation border-b mt-3 flex h-10 whitespace-nowrap flex-nowrap overflow-scroll";
+            isOpen = false;
+        } else {
+            navigation.className = "navigation flex flex-wrap mt-3 h-60";
+            isOpen = true;
+        }
+    });
+
+
+    //处理数据
+    function formatToTenThousand(num) {
+        if (num >= 10000) {
+            // 将数字转换为“万”单位
+            let numInTenThousand = num / 10000;
+
+            // 使用 toFixed() 方法保留小数点后一位，并返回带有“万”字的字符串
+            return `${numInTenThousand.toFixed(1)}万`;
+
+        } else {
+            return num;
+        }
+
+    }
+
+    //动态创建视频页
+    function createVideoShows(datas) {
+        var videoShows = document.querySelector(".video-shows");
+
+        var mainBack = document.createElement("div");
+        mainBack.className = "w-44 h-30 ml-2 mt-2 main-back";
+
+        var imgBack = document.createElement("div");
+        imgBack.className = `img-back w-44 h-28 flex rounded items-end background-size: 100% 100%; bg-contain bg-no-repeat bg-[url('${datas.pic}')]`;
+
+        var photoBack = document.createElement("div");
+        photoBack.className = "photo-back justify-between rounded-ee w-44 flex bottom-0 h-6";
+
+
+        var views = document.createElement("div");
+        //items-end justify-start
+        views.className = "views ml-1 mb-1 left-2 bottom-2 flex  text-white text-sm";
+        views.innerHTML = `<img class="w-5 h-5" src="img/stash--play-btn.png">
+                        ${formatToTenThousand(datas.stat.view)}`;
+
+        var msgs = document.createElement("div");
+        //items-end justify-end
+        msgs.className = "msgs w-24 mr-1 mb-1 right-2 bottom-2 flex justify-end text-white text-sm";
+        msgs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                        viewBox="0 0 24 24" width="24" height="24" fill="#ffffff"
+                        class="w-5 h-5 bili-video-card__stats--icon"><!--[-->
+                        <path
+                            d="M12 4.99805C9.48178 4.99805 7.283 5.12616 5.73089 5.25202C4.65221 5.33949 3.81611 6.16352 3.72 7.23254C3.60607 8.4998 3.5 10.171 3.5 11.998C3.5 13.8251 3.60607 15.4963 3.72 16.76355C3.81611 17.83255 4.65221 18.6566 5.73089 18.7441C7.283 18.8699 9.48178 18.998 12 18.998C14.5185 18.998 16.7174 18.8699 18.2696 18.74405C19.3481 18.65655 20.184 17.8328 20.2801 16.76405C20.394 15.4973 20.5 13.82645 20.5 11.998C20.5 10.16965 20.394 8.49877 20.2801 7.23205C20.184 6.1633 19.3481 5.33952 18.2696 5.25205C16.7174 5.12618 14.5185 4.99805 12 4.99805zM5.60965 3.75693C7.19232 3.62859 9.43258 3.49805 12 3.49805C14.5677 3.49805 16.8081 3.62861 18.3908 3.75696C20.1881 3.90272 21.6118 5.29278 21.7741 7.09773C21.8909 8.3969 22 10.11405 22 11.998C22 13.88205 21.8909 15.5992 21.7741 16.8984C21.6118 18.7033 20.1881 20.09335 18.3908 20.23915C16.8081 20.3675 14.5677 20.498 12 20.498C9.43258 20.498 7.19232 20.3675 5.60965 20.2392C3.81206 20.0934 2.38831 18.70295 2.22603 16.8979C2.10918 15.5982 2 13.8808 2 11.998C2 10.1153 2.10918 8.39787 2.22603 7.09823C2.38831 5.29312 3.81206 3.90269 5.60965 3.75693z"
+                            fill="currentColor"></path>
+                        <path
+                            d="M15.875 10.75L9.875 10.75C9.46079 10.75 9.125 10.4142 9.125 10C9.125 9.58579 9.46079 9.25 9.875 9.25L15.875 9.25C16.2892 9.25 16.625 9.58579 16.625 10C16.625 10.4142 16.2892 10.75 15.875 10.75z"
+                            fill="currentColor"></path>
+                        <path
+                            d="M17.375 14.75L11.375 14.75C10.9608 14.75 10.625 14.4142 10.625 14C10.625 13.5858 10.9608 13.25 11.375 13.25L17.375 13.25C17.7892 13.25 18.125 13.5858 18.125 14C18.125 14.4142 17.7892 14.75 17.375 14.75z"
+                            fill="currentColor"></path>
+                        <path
+                            d="M7.875 10C7.875 10.4142 7.53921 10.75 7.125 10.75L6.625 10.75C6.21079 10.75 5.875 10.4142 5.875 10C5.875 9.58579 6.21079 9.25 6.625 9.25L7.125 9.25C7.53921 9.25 7.875 9.58579 7.875 10z"
+                            fill="currentColor"></path>
+                        <path
+                            d="M9.375 14C9.375 14.4142 9.03921 14.75 8.625 14.75L8.125 14.75C7.71079 14.75 7.375 14.4142 7.375 14C7.375 13.5858 7.71079 13.25 8.125 13.25L8.625 13.25C9.03921 13.25 9.375 13.5858 9.375 14z"
+                            fill="currentColor"></path><!--]-->
+                    </svg>
+                    ${formatToTenThousand(datas.stat.danmaku)}`;
+
+
+        var titleMsg = document.createElement("div");
+        titleMsg.className = "title-msg mt-2 w-44 text-xs";
+        titleMsg.innerText = `${datas.title}`;
+
+        photoBack.appendChild(views);
+        photoBack.appendChild(msgs);
+        imgBack.appendChild(photoBack);
+        mainBack.appendChild(imgBack);
+        mainBack.appendChild(titleMsg);
+        videoShows.appendChild(mainBack);
+    }
+
+    res.data.forEach(element => {
+        createVideoShows(element);
+    });
+
+    const navWrapper = document.querySelector('.a');
+    const navItems = document.querySelectorAll('.nav-item');
+    const line = document.querySelector('.line');
+
+    // 初始化：设置横线宽度和位置为第一个导航项
+    const setLinePosition = (element) => {
+        const scrollOffset = navWrapper.scrollLeft - 5; // 获取导航栏的滚动偏移量
+
+        line.style.width = `${element.offsetWidth - 20}px`; // 设置横线宽度
+        line.style.left = `${element.offsetLeft - scrollOffset + 5}px`; // 动态调整横线位置
+    };
+
+    // 滚动使元素居中
+    const scrollToCenter = (element) => {
+        const wrapperWidth = navWrapper.offsetWidth; // 容器宽度
+        const itemOffset = element.offsetLeft; // 当前项的左偏移
+        const itemWidth = element.offsetWidth; // 当前项的宽度
+        const scrollPosition = itemOffset - wrapperWidth / 2 + itemWidth / 2; // 滚动位置公式
+        navWrapper.scrollTo({
+            left: scrollPosition,
+            behavior: 'smooth', // 平滑滚动
+        });
+    };
+
+    // 默认激活第一个导航项
+    setLinePosition(navItems[0]);
+    scrollToCenter(navItems[0]);
+    navItems[0].classList.add('active');
+
+    // 点击事件：更新横线位置、激活状态，并居中滚动
+    navItems.forEach((item) => {
+        item.addEventListener('click', () => {
+            // 移动横线
+            setLinePosition(item);
+
+            // 滚动使其居中
+            scrollToCenter(item);
+
+            // 更新激活状态
+            navItems.forEach((nav) => nav.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+
+    // 滚动事件：实时更新横线位置
+    navWrapper.addEventListener('scroll', () => {
+        const activeItem = document.querySelector('.nav-item.active');
+        setLinePosition(activeItem);
+    });
+
+
+    //底部标签加载
+    window.addEventListener('load', () => {
+        var banner = document.querySelector('.bottom-banner');
+        banner.style.animation = 'slide-up 0.5s ease-in-out forwards';
+    });
+
+</script>
+
+</html>

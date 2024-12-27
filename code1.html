@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .tabs-container {
+        width: 100vw;
+        border: 1px solid red;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        height: 80px;
+        cursor: pointer;
+        user-select: none;
+        transform: translate3d(0, 0, 0);
+        overflow: hidden;
+    }
+
+    .tabs-content {
+        display: flex;
+    }
+
+    .tabs-item {
+        width: 80px;
+        text-align: center;
+    }
+
+    .drawer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 200px;
+        background-color: white;
+        z-index: 99;
+    }
+</style>
+
+<body>
+    <div>头部标签</div>
+    <div class="tabs"></div>
+    <div>内容区域</div>
+    <!-- tabs结构 -->
+    <!-- <div class="tabs-container">
+        <div class="tabs-content">
+            <div class="tabs-item"></div>
+            <div class="tabs-item"></div>
+            <div class="tabs-item"></div>
+            <div class="tabs-item"></div>
+            <div class="tabs-item"></div>
+        </div>
+    </div> -->
+</body>
+<script src="data.js"></script>
+<script>
+    // function initDrawer(parent, data) {
+    //     var drawer = createElement('div', { className: 'drawer' });
+    //     var content = createElement('div', { className: 'drawer-content' });
+    //     data.forEach(function (item) {
+    //         var item = 
+
+    //     })
+    // }
+
+
+    var pervTranslateX = 0;
+    function typeOf(data) {
+        return Object.prototype.toString.call(data).slice(8, -1).toLowerCase();
+    }
+
+    //定义按照指定要求创建节点的函数createElement
+    function createElement(tag, attrs, children) {
+        // if(arguments.length<1)throw new Error("tag参数是必须传递的！");
+        if (typeof tag !== "string") throw new Error("tag参数类型必须是字符串");
+        var element = document.createElement(tag);
+        if (element instanceof HTMLUnknownElement) throw new Error('tag标签名不合法');
+        // attrs = typeOf(attrs) === "object" ? attrs : {};
+        if (typeOf(attrs) !== "object") {
+            attrs = {}
+        }
+        Object.entries(attrs).forEach(function (attr) {
+            var attrName = attr[0];
+            var attrValue = attr[1];
+            element[attrName] = attrValue;
+        })
+        if (typeOf(children) === "string") element.innerHTML = children;
+        return element;
+
+    }
+
+    function bindEvent(element) {
+        var parentRectInfo = element.parentElement.getBoundingClientRect();
+        var centerX = parentRectInfo.width / 2;
+        var parentLeft = parentRectInfo.left;
+        var translateX = 0;
+
+        element.addEventListener('click', function (e) {
+            if (e.target.classList.container('tabs-item')) {
+                var itemRectInfo = e.target.getBoundingClientRect();
+                var itemLeft = itemRectInfo.left;
+                translateX = centerX - (itemLeft - parentLeft) - itemRectInfo.width / 2;
+                pervTranslateX += translateX;
+                element.style.cssText = `transform : translate3d(${pervTranslateX}px,0,0);transition: all ease-in 200ms`;
+
+            }
+        })
+    }
+    function initScroll(element) {
+        // var scrollDistance = 0;
+        var distanceX = 0;
+
+        element.addEventListener('touchstart', function (event) {
+
+            element.style.transition = "unset";
+            function moveCallback(e) {
+
+                distanceX = e.touches[0].clientX - event.touches[0].clientX;
+                element.style.transform = `translate3d(${pervTranslateX + distanceX}px,0,0)`;
+            }
+            document.addEventListener('touchmove', moveCallback);
+            document.addEventListener('touchend', function () {
+                this.removeEventListener('touchmove', moveCallback);
+                pervTranslateX += distanceX;
+                distanceX = 0;
+            });
+        })
+    }
+
+
+    //定义一个函数initTabs 渲染tab栏 指定一个挂载点 渲染
+    function initTabs(el, config) {
+        var root = null;
+        if (el instanceof HTMLElement) {
+            root = el;
+        }
+        if (typeof el === "string") {
+            root = document.querySelector(el);
+        }
+        if (!root) throw new Error("el必须是一个存在的元素");
+        if (!config || typeOf(config.dataSource) !== 'array') throw new Error("config.dataSource必须是数组");
+
+        var container = createElement('div', { className: 'tabs-container' });
+        initScroll(content);
+        var content = createElement('div', { className: 'tabs-content' });
+
+        config.dataSource.forEach(function (data) {
+            var tabsItem = createElement('div', { className: 'tabs-item' }, data);
+            content.appendChild(tabsItem);
+        });
+        container.appendChild(content);
+        root.parentElement.replaceChild(container, root);
+        bindEvent(content);
+
+
+    }
+
+
+
+    initTabs('.tabs', {
+        dataSource: res.nav
+
+    });
+
+</script>
+
+</html>
